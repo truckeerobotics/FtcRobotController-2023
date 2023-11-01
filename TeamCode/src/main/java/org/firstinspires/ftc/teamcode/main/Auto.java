@@ -51,7 +51,7 @@ public class Auto extends LinearOpMode {
 
             //OR
 
-//            Find level with a threshold
+//            Find level with a threshold (possible fail)
 
 
 
