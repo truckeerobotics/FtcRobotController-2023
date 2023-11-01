@@ -2,9 +2,9 @@ package org.firstinspires.ftc.teamcode.main;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
-import org.firstinspires.ftc.robotcontroller.external.samples.SensorColor;
 import org.firstinspires.ftc.teamcode.utils.IMU;
 
 
@@ -16,8 +16,10 @@ public class Auto extends LinearOpMode {
     private DcMotor motorBL;
     private DcMotor motorBR;
 
-    private SensorColor colorSensor;
+    private ColorSensor colorSensor;
     private IMU imu;
+
+    private int THRESHOLD = 200;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -26,7 +28,7 @@ public class Auto extends LinearOpMode {
         motorFR = hardwareMap.get(DcMotor.class, "motorFR");
         motorBL = hardwareMap.get(DcMotor.class, "motorBL");
         motorBR = hardwareMap.get(DcMotor.class, "motorBR");
-        colorSensor = hardwareMap.get(SensorColor.class, "color");
+        colorSensor = hardwareMap.colorSensor.get("color");
 
         imu = new IMU(this, "imu");
 
@@ -41,22 +43,16 @@ public class Auto extends LinearOpMode {
 
 
 //            Move to pos1
-//            Check for green
-//
-//            Rotate
-//            Check for green
-//
-//            Rotate
-//            Check for green
 
-            //OR
-
-//            Find level with a threshold (possible fail)
-
-
-
-
-            //Compare highest level
+            int level = -1;
+            int greenValue = colorSensor.green();
+            if(greenValue > THRESHOLD){
+                //correct spot
+                level = 1;
+            }else{
+                //move to next spot
+                //level = 0 or 2
+            }
 
             //Move to correct position
 
