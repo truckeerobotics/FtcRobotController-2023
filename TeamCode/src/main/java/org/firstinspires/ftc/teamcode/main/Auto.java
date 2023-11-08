@@ -29,7 +29,6 @@ public class Auto extends LinearOpMode {
         motorBL = hardwareMap.get(DcMotor.class, "motorBL");
         motorBR = hardwareMap.get(DcMotor.class, "motorBR");
         colorSensor = hardwareMap.colorSensor.get("color");
-
         imu = new IMU(this, "imu");
 
         telemetry.addData("Status", "Waiting for start...");
