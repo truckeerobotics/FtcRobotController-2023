@@ -21,7 +21,8 @@ public class Drive extends LinearOpMode{
     private DcMotor motorFR;
     private DcMotor motorBL;
     private DcMotor motorBR;
-    private DcMotor motorArm;
+    private DcMotor motorAL;
+    private DcMotor motorAR;
     private DcMotor motorScoop;
 
     //declare driving variables
@@ -53,7 +54,8 @@ public class Drive extends LinearOpMode{
         motorFR = hardwareMap.get(DcMotor.class, "motorFR");
         motorBL = hardwareMap.get(DcMotor.class, "motorBL");
         motorBR = hardwareMap.get(DcMotor.class, "motorBR");
-        motorArm = hardwareMap.get(DcMotor.class, "arm");
+        motorAL = hardwareMap.get(DcMotor.class, "armL");
+        motorAR = hardwareMap.get(DcMotor.class, "armR");
         motorScoop = hardwareMap.get(DcMotor.class, "scoop");
 
 
@@ -85,12 +87,6 @@ public class Drive extends LinearOpMode{
                 telemetry.addData("TIP", "Press X to turn on Driver Orientation Mode. (NOT WORKING)");
             }
 
-
-            //easier to use x, y, and rx instead of full names
-            y = -gamepad1.left_stick_y;
-            x = -gamepad1.left_stick_x;
-            rx = -gamepad1.right_stick_x;
-
             //centralizes the robots movement to the drivers POV
 //            if(driverOrientationMode) {
 //                Vector2 rot = imu.getHeadingCorrection(x, y);
@@ -102,24 +98,29 @@ public class Drive extends LinearOpMode{
 //            }
 
             //mecanum drive math
+            double y = gamepad1.left_stick_y;
+            double x = gamepad1.left_stick_x * 1.1; // Counteract imperfect strafing
+            double rx = gamepad1.right_stick_x;
+
+            // Denominator is the largest motor power (absolute value) or 1
             denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
-            backLeftPower = (y - x + rx) / denominator;
-            backRightPower = (y + x - rx) / denominator;
-            frontLeftPower = (y + x + rx) / denominator;
-            frontRightPower = (y - x - rx) / denominator;
+            frontLeftPower = (y - x - rx) / denominator;
+            backLeftPower = (-y + x - rx) / denominator;
+            frontRightPower = (y + x + rx) / denominator;
+            backRightPower = (-y - x + rx) / denominator;
 
-            //give motors power
-            motorBL.setPower(-backLeftPower);
-            motorBR.setPower(backRightPower);
             motorFL.setPower(-frontLeftPower);
+            motorBL.setPower(-backLeftPower);
             motorFR.setPower(frontRightPower);
+            motorBR.setPower(backRightPower);
 
 
 
-            armPower = gamepad2.left_stick_y / 0.5;
-            scoopPower = gamepad2.right_stick_y / 0.5;
+            armPower = gamepad2.left_stick_y * 0.25;
+            scoopPower = gamepad2.right_stick_y * 0.5;
 
-            motorArm.setPower(armPower);
+            motorAL.setPower(armPower);
+            motorAR.setPower(-armPower);
             motorScoop.setPower(scoopPower);
 
 
