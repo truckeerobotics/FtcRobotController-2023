@@ -1,11 +1,13 @@
 package org.firstinspires.ftc.teamcode.main;
 
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.hardware.bosch.BNO055IMU;
 
-import org.firstinspires.ftc.teamcode.utils.IMU;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.utils.Toggle;
 import org.firstinspires.ftc.teamcode.utils.Vector2;
 
@@ -25,10 +27,6 @@ public class Drive extends LinearOpMode{
     private DcMotor motorAR;
     private DcMotor motorScoop;
 
-    //declare driving variables
-    private double y;
-    private double x;
-    private double rx;
     private double denominator;
     private double frontLeftPower;
     private double backLeftPower;
@@ -39,7 +37,11 @@ public class Drive extends LinearOpMode{
 
     //declare custom classes
     private Toggle toggle;
-    //private IMU imu;
+    private BNO055IMU imu;
+
+    private double botHeading;
+    private double rotX;
+    private double rotY;
 
 
 
@@ -58,11 +60,19 @@ public class Drive extends LinearOpMode{
         motorAR = hardwareMap.get(DcMotor.class, "armR");
         motorScoop = hardwareMap.get(DcMotor.class, "scoop");
 
+        imu = hardwareMap.get(BNO055IMU.class, "imu");
+
+        motorFL.setDirection(DcMotorSimple.Direction.REVERSE);
+        motorBR.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+        parameters.angleUnit = BNO055IMU.AngleUnit.RADIANS;
+        imu.initialize(parameters);
 
 
         //initialize custom classes
         toggle = new Toggle(gamepad1, gamepad2);
-        //imu = new IMU(this, "imu");
+
 
         telemetry.addData("ALERT", "Waiting for start.");
         telemetry.update();
@@ -87,36 +97,36 @@ public class Drive extends LinearOpMode{
                 telemetry.addData("TIP", "Press X to turn on Driver Orientation Mode. (NOT WORKING)");
             }
 
-            //centralizes the robots movement to the drivers POV
-//            if(driverOrientationMode) {
-//                Vector2 rot = imu.getHeadingCorrection(x, y);
-//                x = rot.getX();
-//                y = rot.getY();
-//                if (debug) {
-//                    telemetry.addData("rot", rot.toString());
-//                }
-//            }
 
             //mecanum drive math
             double y = gamepad1.left_stick_y;
-            double x = gamepad1.left_stick_x * 1.1; // Counteract imperfect strafing
+            double x = gamepad1.left_stick_x * 1.1;
             double rx = gamepad1.right_stick_x;
+
+            if(driverOrientationMode){
+                botHeading = imu.getAngularOrientation().firstAngle;
+                rotX = x * Math.cos(botHeading) - y * Math.sin(botHeading);
+                rotY = x * Math.sin(botHeading) + y * Math.cos(botHeading);
+            }else{
+                rotX = x;
+                rotY = y;
+            }
 
             // Denominator is the largest motor power (absolute value) or 1
             denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
-            frontLeftPower = (y - x - rx) / denominator;
-            backLeftPower = (-y + x - rx) / denominator;
-            frontRightPower = (y + x + rx) / denominator;
-            backRightPower = (-y - x + rx) / denominator;
+            frontLeftPower = (y + x + rx) / denominator;
+            backLeftPower = (y - x + rx) / denominator;
+            frontRightPower = (y - x - rx) / denominator;
+            backRightPower = (y + x - rx) / denominator;
 
-            motorFL.setPower(-frontLeftPower);
+            motorFL.setPower(frontLeftPower);
             motorBL.setPower(-backLeftPower);
             motorFR.setPower(frontRightPower);
-            motorBR.setPower(backRightPower);
+            motorBR.setPower(-backRightPower);
 
 
 
-            armPower = gamepad2.left_stick_y * 0.25;
+            armPower = gamepad2.left_stick_y;
             scoopPower = gamepad2.right_stick_y * 0.5;
 
             motorAL.setPower(armPower);
@@ -141,6 +151,7 @@ public class Drive extends LinearOpMode{
                 telemetry.addData("frontRightPower", frontRightPower);
                 telemetry.addData("armPower", armPower);
                 telemetry.addData("scoopPower", scoopPower);
+                telemetry.addData("botHeading", botHeading);
             }
 
 
