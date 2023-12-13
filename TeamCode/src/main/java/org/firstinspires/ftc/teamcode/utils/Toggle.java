@@ -1,8 +1,14 @@
 package org.firstinspires.ftc.teamcode.utils;
 
 import com.qualcomm.robotcore.hardware.Gamepad;
+
 import java.util.HashMap;
 
+/**
+ * Wrote this code back in 2021. Its not great.
+ * TODO: Rewrite toggle class without using a unnecessary hashmap
+ * @author github.com/jakeslye
+ */
 public class Toggle{
     public HashMap<String, Boolean> buttons= new HashMap<>();
     private HashMap<String, Boolean> oldButtons;
@@ -10,9 +16,9 @@ public class Toggle{
     private Gamepad gamepad2;
 
 
-    public Toggle(Gamepad gamepad1, Gamepad gamepad2){
-        this.gamepad1 = gamepad1;
-        this.gamepad2 = gamepad2;
+    public Toggle(){
+        this.gamepad1 = Master.getCurrentOpMode().gamepad1;
+        this.gamepad2 = Master.getCurrentOpMode().gamepad2;
         start();
     }
 
@@ -30,9 +36,6 @@ public class Toggle{
         return result;
     }
 
-    /**
-     * Update Button Hashmap
-     */
     public void start(){
         buttons.put("controller1ButtonX", gamepad1.x); //gamepad1.x
         buttons.put("controller1ButtonB", gamepad1.b); //gamepad1.b

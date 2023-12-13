@@ -1,66 +1,64 @@
 package org.firstinspires.ftc.teamcode.main;
 
-import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.teamcode.utils.Master;
 import org.firstinspires.ftc.teamcode.utils.Toggle;
-import org.firstinspires.ftc.teamcode.utils.Vector2;
 
-@TeleOp(name="Drive", group="OpMode")
-public class Drive extends LinearOpMode{
+/** Class that runs in standard game.
+ *
+ * @author github.com/jakeslye
+ */
+public class Drive{
 
     //declare booleans
-    private boolean debug;
-    private boolean driverOrientationMode;
+    private static boolean debug;
+    private static boolean driverOrientationMode;
 
     //declare motor variables
-    private DcMotor motorFL;
-    private DcMotor motorFR;
-    private DcMotor motorBL;
-    private DcMotor motorBR;
-    private DcMotor motorAL;
-    private DcMotor motorAR;
-    private DcMotor motorScoop;
+    private static DcMotor motorFL;
+    private static DcMotor motorFR;
+    private static DcMotor motorBL;
+    private static DcMotor motorBR;
+    private static DcMotor motorA;
+    private static DcMotor motorScoop;
 
-    private double denominator;
-    private double frontLeftPower;
-    private double backLeftPower;
-    private double frontRightPower;
-    private double backRightPower;
-    private double armPower;
-    private double scoopPower;
+    private static double denominator;
+    private static double frontLeftPower;
+    private static double backLeftPower;
+    private static double frontRightPower;
+    private static double backRightPower;
+    private static double armPower;
+    private static double scoopPower;
 
     //declare custom classes
-    private Toggle toggle;
-    private BNO055IMU imu;
+    private static Toggle toggle;
+    private static BNO055IMU imu;
 
-    private double botHeading;
-    private double rotX;
-    private double rotY;
+    private static double botHeading;
+    private static double rotX;
+    private static double rotY;
 
 
 
-    @Override
-    public void runOpMode() {
-        //initialize variables
+    public static void run() {
+        LinearOpMode opmode = Master.getCurrentOpMode();
+
         debug = false;
         driverOrientationMode = true;
 
         //hardware map
-        motorFL = hardwareMap.get(DcMotor.class, "motorFL");
-        motorFR = hardwareMap.get(DcMotor.class, "motorFR");
-        motorBL = hardwareMap.get(DcMotor.class, "motorBL");
-        motorBR = hardwareMap.get(DcMotor.class, "motorBR");
-        motorAL = hardwareMap.get(DcMotor.class, "armL");
-        motorAR = hardwareMap.get(DcMotor.class, "armR");
-        motorScoop = hardwareMap.get(DcMotor.class, "scoop");
+        motorFL = opmode.hardwareMap.get(DcMotor.class, "motorFL");
+        motorFR = opmode.hardwareMap.get(DcMotor.class, "motorFR");
+        motorBL = opmode.hardwareMap.get(DcMotor.class, "motorBL");
+        motorBR = opmode.hardwareMap.get(DcMotor.class, "motorBR");
+        motorA = opmode.hardwareMap.get(DcMotor.class, "arm");
+        motorScoop = opmode.hardwareMap.get(DcMotor.class, "scoop");
 
-        imu = hardwareMap.get(BNO055IMU.class, "imu");
+        imu = opmode.hardwareMap.get(BNO055IMU.class, "imu");
 
         motorFL.setDirection(DcMotorSimple.Direction.REVERSE);
         motorBR.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -70,39 +68,39 @@ public class Drive extends LinearOpMode{
         imu.initialize(parameters);
 
 
-        //initialize custom classes
-        toggle = new Toggle(gamepad1, gamepad2);
+        toggle = new Toggle();
 
 
-        telemetry.addData("ALERT", "Waiting for start.");
-        telemetry.update();
+        opmode.telemetry.addData("ALERT", "Waiting for start.");
+        opmode.telemetry.update();
 
-        waitForStart();
+        opmode.waitForStart();
 
-        while (opModeIsActive()) {
+        while (opmode.opModeIsActive()) {
 
-            //setup toggle key handlers
-            if(toggle.onPush(gamepad1.a, "controller1ButtonA")) debug = !debug;
-            if(toggle.onPush(gamepad1.x, "controller1ButtonX")) driverOrientationMode = !driverOrientationMode;
+            //Setup toggle key handlers
+            if(toggle.onPush(opmode.gamepad1.a, "controller1ButtonA")) debug = !debug;
+            if(toggle.onPush(opmode.gamepad1.x, "controller1ButtonX")) driverOrientationMode = !driverOrientationMode;
 
-            //debug tool tip for enabling/disabling debug mode
+            //Debug tool tip for enabling/disabling debug mode
             if(debug) {
-                telemetry.addData("WARNING", "Press A to turn off debug mode.");
+                opmode.telemetry.addData("WARNING", "Press A to turn off debug mode.");
             }else {
-                telemetry.addData("TIP", "Press A to turn on debug mode.");
+                opmode.telemetry.addData("TIP", "Press A to turn on debug mode.");
             }
             if(driverOrientationMode) {
-                telemetry.addData("ALERT", "Driver Orientation Mode is on. (NOT WORKING)");
+                opmode.telemetry.addData("ALERT", "Driver Orientation Mode is on. (NOT WORKING)");
             }else {
-                telemetry.addData("TIP", "Press X to turn on Driver Orientation Mode. (NOT WORKING)");
+                opmode.telemetry.addData("TIP", "Press X to turn on Driver Orientation Mode. (NOT WORKING)");
             }
 
 
             //mecanum drive math
-            double y = gamepad1.left_stick_y;
-            double x = gamepad1.left_stick_x * 1.1;
-            double rx = gamepad1.right_stick_x;
+            double y = opmode.gamepad1.left_stick_y;
+            double x = opmode.gamepad1.left_stick_x * 1.1;
+            double rx = opmode.gamepad1.right_stick_x;
 
+            //Orient the robot to the driver
             if(driverOrientationMode){
                 botHeading = imu.getAngularOrientation().firstAngle;
                 rotX = x * Math.cos(botHeading) - y * Math.sin(botHeading);
@@ -113,11 +111,11 @@ public class Drive extends LinearOpMode{
             }
 
             // Denominator is the largest motor power (absolute value) or 1
-            denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
-            frontLeftPower = (y + x + rx) / denominator;
-            backLeftPower = (y - x + rx) / denominator;
-            frontRightPower = (y - x - rx) / denominator;
-            backRightPower = (y + x - rx) / denominator;
+            denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1) * 1.1;
+            frontLeftPower = (rotY + rotX + rx) / denominator;
+            backLeftPower = (rotY - rotX + rx) / denominator;
+            frontRightPower = (rotY - rotX - rx) / denominator;
+            backRightPower = (rotY + rotX - rx) / denominator;
 
             motorFL.setPower(frontLeftPower);
             motorBL.setPower(-backLeftPower);
@@ -126,11 +124,10 @@ public class Drive extends LinearOpMode{
 
 
 
-            armPower = gamepad2.left_stick_y;
-            scoopPower = gamepad2.right_stick_y * 0.5;
+            armPower = opmode.gamepad2.left_stick_y;
+            scoopPower = opmode.gamepad2.right_stick_y * 0.5;
 
-            motorAL.setPower(armPower);
-            motorAR.setPower(-armPower);
+            motorA.setPower(armPower);
             motorScoop.setPower(scoopPower);
 
 
@@ -141,22 +138,22 @@ public class Drive extends LinearOpMode{
 
             //print out remaining debug variables
             if(debug){
-                telemetry.addData("y", y);
-                telemetry.addData("x", x);
-                telemetry.addData("rx", rx);
-                telemetry.addData("denominator", denominator);
-                telemetry.addData("backLeftPower", backLeftPower);
-                telemetry.addData("backRightPower", backRightPower);
-                telemetry.addData("frontLeftPower", frontLeftPower);
-                telemetry.addData("frontRightPower", frontRightPower);
-                telemetry.addData("armPower", armPower);
-                telemetry.addData("scoopPower", scoopPower);
-                telemetry.addData("botHeading", botHeading);
+                opmode.telemetry.addData("y", y);
+                opmode.telemetry.addData("x", x);
+                opmode.telemetry.addData("rx", rx);
+                opmode.telemetry.addData("denominator", denominator);
+                opmode.telemetry.addData("backLeftPower", backLeftPower);
+                opmode.telemetry.addData("backRightPower", backRightPower);
+                opmode.telemetry.addData("frontLeftPower", frontLeftPower);
+                opmode.telemetry.addData("frontRightPower", frontRightPower);
+                opmode.telemetry.addData("armPower", armPower);
+                opmode.telemetry.addData("scoopPower", scoopPower);
+                opmode.telemetry.addData("botHeading", botHeading);
             }
 
 
             //update debug screen
-            telemetry.update();
+            opmode.telemetry.update();
         }
 
     }
