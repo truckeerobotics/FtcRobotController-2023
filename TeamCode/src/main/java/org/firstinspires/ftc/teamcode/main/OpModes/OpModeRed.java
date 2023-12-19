@@ -11,6 +11,6 @@ public class OpModeRed extends LinearOpMode{
     @Override
     public void runOpMode() {
         Master.setCurrentOpMode(this);
-        AutonomousOpMode.run(this, AutonomousOpMode.RED, AutonomousOpMode.LEFT);
+        AutonomousOpMode.run(AutonomousOpMode.RED, AutonomousOpMode.LEFT);
     }
 }

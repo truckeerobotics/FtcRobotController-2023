@@ -7,6 +7,10 @@ import org.firstinspires.ftc.teamcode.utils.Camera;
 import org.firstinspires.ftc.teamcode.utils.Master;
 import org.firstinspires.ftc.teamcode.utils.Tools;
 
+/** Class that runs during autonomous
+ *
+ * @author github.com/jakeslye
+ */
 public class AutonomousOpMode {
 
     public static final int RED = 0;
@@ -23,13 +27,18 @@ public class AutonomousOpMode {
 
 
 
-    public static void run(LinearOpMode opmode, int color, int fieldPos){
+    public static void run(int color, int fieldPos){
         //Get OpMode from master class
         opMode = Master.getCurrentOpMode();
 
         AutonomousOpMode.color = color;
         AutonomousOpMode.fieldPos = fieldPos;
         AutonomousOpMode.autononmousDrive = new AutonomousDrive();
+
+        opMode.telemetry.addData("STATUS", "^-^ Waiting for start");
+        opMode.telemetry.update();
+
+        opMode.waitForStart();
 
         //Get side from camera
         int side = Camera.run();
@@ -42,14 +51,15 @@ public class AutonomousOpMode {
         }else if(side == Camera.RIGHT){
             s = "Right";
         }else{
-            s = "Oh god everything is bad!";
+            s = "Unknown";
         }
-        opMode.telemetry.addData("Side", s);
 
-        opMode.telemetry.addData("STATUS", "^-^ Waiting for start");
-        opMode.telemetry.update();
 
-        opMode.waitForStart();
+        Tools.doForTime(1, () -> {
+            opMode.telemetry.addData("Side", s + "... Proceeding in one second...");
+            opMode.telemetry.update();
+        });
+
 
 
 
@@ -70,27 +80,40 @@ public class AutonomousOpMode {
             }
 
         }
+
+        opMode.telemetry.addData("STATUS", ":D All done. Hopefully it worked.");
+        opMode.telemetry.update();
     }
 
 
 
-    private static void doPlacement(int side, double power){
+    private static void doPlacement(int color, int side, double power){
         double distance = 0.0;
 
-        if(side == Camera.LEFT){
-            distance = 2;
-        }else if(side == Camera.CENTER || side == Camera.ERROR){
-            distance = 3.1;
-        }else if(side == Camera.RIGHT){
-            distance = 4.2;
+        if(color == BLUE) {
+            if(side == Camera.LEFT){
+                distance = 2.1;
+            }else if(side == Camera.CENTER || side == Camera.ERROR){
+                distance = 2.9;
+            }else if(side == Camera.RIGHT){
+                distance = 3.7;
+            }
+        }else{
+            if(side == Camera.LEFT){
+                distance = 3.7;
+            }else if(side == Camera.CENTER || side == Camera.ERROR){
+                distance = 2.9;
+            }else if(side == Camera.RIGHT){
+                distance = 2.1 ;
+            }
         }
 
-        AutonomousOpMode.autononmousDrive.strafeByTime(distance, power);
-
-        //AutonomousOpMode.autononmousDrive.turn(0.2, 0.5);
-
-        if(side == Camera.LEFT || side == Camera.CENTER){
-            AutonomousOpMode.autononmousDrive.driveForwardByTime(0.5, power);
+        if(color == BLUE) {
+            AutonomousOpMode.autononmousDrive.strafeByTime(distance, -power);
+            //AutonomousOpMode.autononmousDrive.turn(90.0, 0.25);
+        }else{
+            AutonomousOpMode.autononmousDrive.strafeByTime(distance, power);
+            //AutonomousOpMode.autononmousDrive.turn(-90.0, 0.25);
         }
 
 
@@ -126,11 +149,6 @@ public class AutonomousOpMode {
             opMode.telemetry.addData("STATUS", ":P Waiting for scoop...");
             opMode.telemetry.update();
         });
-
-        AutonomousOpMode.autononmousDrive.strafeByTime(distance, -power);
-
-        opMode.telemetry.addData("STATUS", ":D All done. Hopefully it worked.");
-        opMode.telemetry.update();
     }
 
 
@@ -138,22 +156,19 @@ public class AutonomousOpMode {
 
     private static void blueLeft(int side){
         AutonomousOpMode.autononmousDrive.driveForwardByTime(0.5, 0.5);
-        AutonomousOpMode.autononmousDrive.turn(2.8, 0.5);
-        AutonomousOpMode.autononmousDrive.driveForwardByTime(4.95, 0.5);
+        AutonomousOpMode.autononmousDrive.turn(90.0, 0.25);
+        AutonomousOpMode.autononmousDrive.driveForwardByTime(3.8, 0.5);
 
-        doPlacement(side, -0.5);
 
-        AutonomousOpMode.autononmousDrive.turn(2.8, -0.5);
+        doPlacement(BLUE, side, -0.5);
     }
 
     private static void redLeft(int side){
         AutonomousOpMode.autononmousDrive.driveForwardByTime(0.5, 0.5);
-        AutonomousOpMode.autononmousDrive.turn(2.85, -0.5);
-        AutonomousOpMode.autononmousDrive.driveForwardByTime(4.95, 0.5);
+        AutonomousOpMode.autononmousDrive.turn(-90.0, 0.25);
+        AutonomousOpMode.autononmousDrive.driveForwardByTime( 3.8, 0.5);
 
-        doPlacement(side, 0.5);
-
-        AutonomousOpMode.autononmousDrive.turn(2.85, 0.5);
+        doPlacement(RED, side, 0.5);
     }
 
     public static int getColor(){

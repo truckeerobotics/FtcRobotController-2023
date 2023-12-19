@@ -5,14 +5,15 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+
 
 /** Has functions for controlling the robot from an autonomous mode
+ *  TODO: Use encoders instead of time
  *
- * @author github.com/jakeslye
+ *  @author github.com/jakeslye
  */
 public class AutonomousDrive {
-
-    //TODO: Use encoders instead of time
 
     private DcMotor motorFL;
     private DcMotor motorFR;
@@ -33,7 +34,14 @@ public class AutonomousDrive {
         motorBR    = opmode.hardwareMap.get(DcMotor.class, "motorBR");
         motorA     = opmode.hardwareMap.get(DcMotor.class, "arm");
         motorScoop = opmode.hardwareMap.get(DcMotor.class, "scoop");
-        imu        = opmode.hardwareMap.get(BNO055IMU.class, "imu");
+
+        if(Master.getImu() == null){
+            Master.setIMU(opmode.hardwareMap.get(BNO055IMU.class, "imu"));
+            BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+            parameters.angleUnit = BNO055IMU.AngleUnit.RADIANS;
+            Master.getImu().initialize(parameters);
+        }
+        imu = Master.getImu();
 
         motorFL.setDirection(DcMotorSimple.Direction.REVERSE);
         motorBR.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -86,23 +94,31 @@ public class AutonomousDrive {
         emulateController(0, 0, 0);
     }
 
-    public void turn(double time, double power){
-/*        double header = imu.getAngularOrientation().firstAngle + degrees;
-        if(degrees > header){
-            while(degrees > imu.getAngularOrientation().firstAngle){
-                emulateController(0, 0, power);
-            }
-        }else if(header < degrees){
-            while(degrees < imu.getAngularOrientation().firstAngle){
-                emulateController(0, 0, -power);
+    final double ANGLE_THRESHOLD = 0.5;
+    public void turn(double target, double power){
+
+        float a = imu.getAngularOrientation().toAngleUnit(AngleUnit.DEGREES).firstAngle;
+
+        if(a < target + ANGLE_THRESHOLD && a > target - ANGLE_THRESHOLD){
+            return;
+        }
+
+
+        if(target < 0){
+            power *= -1;
+        }
+
+        boolean run = true;
+        emulateController(0, 0, power);
+        while(run){
+            a = imu.getAngularOrientation().toAngleUnit(AngleUnit.DEGREES).firstAngle;
+            opmode.telemetry.addData("AutonomousDrive", ":P turning... angle: " + a);
+            opmode.telemetry.update();
+            if(a < target + ANGLE_THRESHOLD && a > target - ANGLE_THRESHOLD){
+                run = false;
             }
         }
-        emulateController(0, 0, 0);*/
-        emulateController(0, 0, power);
-        Tools.doForTime(time, () -> {
-            opmode.telemetry.addData("AutonomousDrive", ":D Turning...");
-            opmode.telemetry.update();
-        });
+
         emulateController(0, 0, 0);
     }
 

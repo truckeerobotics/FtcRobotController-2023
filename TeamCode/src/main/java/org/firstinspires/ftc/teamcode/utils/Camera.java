@@ -92,7 +92,7 @@ public class Camera {
             final int THRESHOLD = 100;
 
             //Search by row. This is so slow. I know why Alex wanted to use c++ now.
-            for(int h=0; h<height/3; h++){
+            for(int h=0; h<height/2; h++){
                 for(int w=0; w<width; w++){
                     //Gets a pixels content as a int
                     int pixel = bitMap.getPixel(w, h);

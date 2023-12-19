@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.utils;
 
+import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.utils.Tools;
@@ -12,6 +13,8 @@ import org.firstinspires.ftc.teamcode.utils.Tools;
  */
 public class Master {
     private static LinearOpMode currentOpMode;
+    private static BNO055IMU imu;
+
 
     /**
      * Sets the master LinearOpMode for every class. Please only call from classes extending LinearOpMode.
@@ -25,5 +28,13 @@ public class Master {
 
     public static LinearOpMode getCurrentOpMode(){
         return currentOpMode;
+    }
+
+    public static void setIMU(BNO055IMU _imu){
+        imu = _imu;
+    }
+
+    public static BNO055IMU getImu(){
+        return imu;
     }
 }

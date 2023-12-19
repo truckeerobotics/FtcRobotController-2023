@@ -46,6 +46,13 @@ public class Drive{
 
     public static void run() {
         LinearOpMode opmode = Master.getCurrentOpMode();
+        if(Master.getImu() == null){
+            Master.setIMU(opmode.hardwareMap.get(BNO055IMU.class, "imu"));
+            BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+            parameters.angleUnit = BNO055IMU.AngleUnit.RADIANS;
+            Master.getImu().initialize(parameters);
+        }
+        imu = Master.getImu();
 
         debug = false;
         driverOrientationMode = true;
@@ -58,15 +65,8 @@ public class Drive{
         motorA = opmode.hardwareMap.get(DcMotor.class, "arm");
         motorScoop = opmode.hardwareMap.get(DcMotor.class, "scoop");
 
-        imu = opmode.hardwareMap.get(BNO055IMU.class, "imu");
-
         motorFL.setDirection(DcMotorSimple.Direction.REVERSE);
         motorBR.setDirection(DcMotorSimple.Direction.REVERSE);
-
-        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
-        parameters.angleUnit = BNO055IMU.AngleUnit.RADIANS;
-        imu.initialize(parameters);
-
 
         toggle = new Toggle();
 
@@ -125,7 +125,7 @@ public class Drive{
 
 
             armPower = opmode.gamepad2.left_stick_y;
-            scoopPower = opmode.gamepad2.right_stick_y * 0.5;
+            scoopPower = opmode.gamepad2.right_stick_y;
 
             motorA.setPower(armPower);
             motorScoop.setPower(scoopPower);
