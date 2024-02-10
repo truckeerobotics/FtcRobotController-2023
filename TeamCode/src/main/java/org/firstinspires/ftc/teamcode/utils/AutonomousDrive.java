@@ -4,6 +4,7 @@ import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
@@ -21,6 +22,7 @@ public class AutonomousDrive {
     private DcMotor motorBR;
     private DcMotor motorA;
     private DcMotor motorScoop;
+    private Servo dropper;
     private BNO055IMU imu;
 
     private LinearOpMode opmode;
@@ -34,6 +36,7 @@ public class AutonomousDrive {
         motorBR    = opmode.hardwareMap.get(DcMotor.class, "motorBR");
         motorA     = opmode.hardwareMap.get(DcMotor.class, "arm");
         motorScoop = opmode.hardwareMap.get(DcMotor.class, "scoop");
+        dropper    = opmode.hardwareMap.get(Servo.class, "dropper");
 
         if(Master.getImu() == null){
             Master.setIMU(opmode.hardwareMap.get(BNO055IMU.class, "imu"));
@@ -75,12 +78,15 @@ public class AutonomousDrive {
         motorBR.setPower(-backRightPower);
     }
 
+    public void dropper(){
+        dropper.setPosition(1);
+    }
+
 
     public void driveForwardByTime(double time, double power){
         emulateController(0, power, 0);
         Tools.doForTime(time, () -> {
-            opmode.telemetry.addData("AutonomousDrive", ":3 Driving forward...");
-            opmode.telemetry.update();
+
         });
         emulateController(0, 0, 0);
     }
@@ -88,8 +94,7 @@ public class AutonomousDrive {
     public void strafeByTime(double time, double power){
         emulateController(power, 0, 0);
         Tools.doForTime(time, () -> {
-            opmode.telemetry.addData("AutonomousDrive", ":O Strafing...");
-            opmode.telemetry.update();
+
         });
         emulateController(0, 0, 0);
     }
@@ -97,7 +102,7 @@ public class AutonomousDrive {
     final double ANGLE_THRESHOLD = 0.5;
     public void turn(double target, double power){
 
-        float a = imu.getAngularOrientation().toAngleUnit(AngleUnit.DEGREES).firstAngle;
+        float a = imu.getAngularOrientation().toAngleUnit(AngleUnit.DEGREES).secondAngle;
 
         if(a < target + ANGLE_THRESHOLD && a > target - ANGLE_THRESHOLD){
             return;
@@ -111,9 +116,7 @@ public class AutonomousDrive {
         boolean run = true;
         emulateController(0, 0, power);
         while(run){
-            a = imu.getAngularOrientation().toAngleUnit(AngleUnit.DEGREES).firstAngle;
-            opmode.telemetry.addData("AutonomousDrive", ":P turning... angle: " + a);
-            opmode.telemetry.update();
+            a = imu.getAngularOrientation().toAngleUnit(AngleUnit.DEGREES).secondAngle;
             if(a < target + ANGLE_THRESHOLD && a > target - ANGLE_THRESHOLD){
                 run = false;
             }
@@ -122,11 +125,16 @@ public class AutonomousDrive {
         emulateController(0, 0, 0);
     }
 
+    public void turnByTime(double time, double power){
+        emulateController(0, 0, power);
+        Tools.doForTime(time, () -> {
+        });
+        emulateController(0, 0, 0);
+    }
+
     public void scoopByTime(double time, double power){
         motorScoop.setPower(power);
         Tools.doForTime(time, () -> {
-            opmode.telemetry.addData("AutonomousDrive", ":D Scoop moving...");
-            opmode.telemetry.update();
         });
         motorScoop.setPower(0);
     }
@@ -134,8 +142,6 @@ public class AutonomousDrive {
     public void armByTime(double time, double power){
         motorA.setPower(power);
         Tools.doForTime(time, () ->{
-            opmode.telemetry.addData("AutonomousDrive", ":3 Arm moving...");
-            opmode.telemetry.update();
         });
         motorA.setPower(0);
     }

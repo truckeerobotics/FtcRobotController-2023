@@ -30,37 +30,33 @@ public class Camera {
 
     private static LinearOpMode opMode;
     private static Telemetry telemetry;
+    private static VisionPortal portal;
 
-    public static int run() {
+    public static void init(){
         opMode = Master.getCurrentOpMode();
         telemetry = opMode.telemetry;
 
-        //Random values.
-        //TODO: Test different values.
         final int RESOLUTION_WIDTH = 800;
         final int RESOLUTION_HEIGHT = 448;
 
-        VisionPortal portal;
 
         portal = new VisionPortal.Builder()
                 .setCamera(opMode.hardwareMap.get(WebcamName.class, "cam"))
                 .setCameraResolution(new Size(RESOLUTION_WIDTH, RESOLUTION_HEIGHT))
                 .build();
+    }
+
+    public static int run() {
+        opMode = Master.getCurrentOpMode();
+        telemetry = opMode.telemetry;
 
 
         final String FILE_NAME = "frame";
 
-        //If I don't do this photo is just black
-        Tools.doForTime(4, () -> {
-            telemetry.addData("STATUS", "Waiting for camera to boot up... :3");
-            telemetry.update();
-        });
-
         portal.saveNextFrameRaw(FILE_NAME);
 
-        //IDK if this is needed but its safer
-        Tools.doForTime(2, () -> {
-            telemetry.addData("STATUS", "Waiting for image to save... :3");
+        Tools.doForTime(1, () -> {
+            telemetry.addData("Status", "Waiting for image to save..");
             telemetry.update();
         });
 
@@ -92,7 +88,7 @@ public class Camera {
             final int THRESHOLD = 100;
 
             //Search by row. This is so slow. I know why Alex wanted to use c++ now.
-            for(int h=0; h<height/2; h++){
+            for(int h=0+(height/2); h<height; h++){
                 for(int w=0; w<width; w++){
                     //Gets a pixels content as a int
                     int pixel = bitMap.getPixel(w, h);
@@ -139,11 +135,6 @@ public class Camera {
                 }
             }
 
-            //Some debugging
-            telemetry.addData("leftCount", leftCount);
-            telemetry.addData("centerCount", centerCount);
-            telemetry.addData("rightCount", rightCount);
-
             //If this doesn't work it will jump to the return ERROR at the end
             if(leftCount > rightCount && leftCount > centerCount){
                 return LEFT;
@@ -151,6 +142,10 @@ public class Camera {
                 return CENTER;
             }else if(rightCount > leftCount && rightCount > centerCount){
                 return RIGHT;
+            }
+
+            if(leftCount == 0 && rightCount == 0 && centerCount == 0) {
+                telemetry.addData(":0 Warning", "Image is black :(");
             }
 
 
